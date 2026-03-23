@@ -3,494 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JEE Mock Examination</title>
+    <title>JEE Main Mock - CBT Console</title>
     <style>
-        /* General Resets & NTA Theme */
-        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background-color: #fff; color: #333; font-size: 14px; }
-        .hidden { display: none !important; }
-        button { cursor: pointer; border-radius: 4px; }
-        
-        /* Layout Wrappers */
-        .page-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        :root {
+            --nta-orange: #f39c12;
+            --nta-blue: #337ab7;
+            --nta-green: #5cb85c;
+            --nta-dark-blue: #286090;
+            --nta-red: #d9534f;
+            --nta-purple: #5a3286;
+        }
 
-        /* --- SETUP PAGE --- */
-        #setup-page { border: 1px solid #ccc; padding: 20px; border-radius: 5px; background: #f9f9f9; margin-top: 40px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #fff; color: #333; font-size: 13px; user-select: none; }
+        .hidden { display: none !important; }
+        button { cursor: pointer; border: 1px solid transparent; border-radius: 2px; }
+
+        /* --- SETUP & INSTRUCTIONS --- */
+        .page-container { max-width: 1000px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; background: #f9f9f9; }
         .setup-group { margin-bottom: 15px; }
         .setup-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .setup-group input[type="text"], .setup-group input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        .section-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .btn-primary { background: #337ab7; color: white; border: 1px solid #2e6da4; padding: 8px 16px; font-weight: bold; }
-        .btn-primary:hover { background: #286090; }
-
-        /* --- INSTRUCTIONS PAGE (Matched to Screenshots) --- */
-        #instructions-page { line-height: 1.5; color: #000; }
-        .inst-title { text-align: center; font-size: 18px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
-        .inst-heading { font-weight: bold; text-decoration: underline; font-size: 16px; margin-top: 20px; margin-bottom: 10px; }
-        .inst-list { padding-left: 20px; }
-        .inst-list li { margin-bottom: 8px; }
+        .setup-group input, .setup-group select { width: 100%; padding: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         
-        /* Palette Shapes for Instructions */
-        .pal-icon { display: inline-block; width: 30px; height: 30px; text-align: center; line-height: 30px; color: white; font-weight: bold; vertical-align: middle; margin-right: 10px; font-size: 12px; }
-        .icon-gray { background: #e2e2e2; border: 1px solid #ccc; color: black; border-radius: 3px; }
-        .icon-red { background: #d9534f; clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%); }
-        .icon-green { background: #5cb85c; clip-path: polygon(50% 0%, 100% 25%, 100% 100%, 0 100%, 0 25%); }
-        .icon-purple { background: #5a3286; border-radius: 50%; }
-        .icon-purple-green { background: #5a3286; border-radius: 50%; position: relative; }
-        .icon-purple-green::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 8px; height: 8px; background: #5cb85c; border-radius: 50%; }
+        .inst-header { text-align: center; font-weight: bold; font-size: 18px; text-decoration: underline; margin-bottom: 20px; }
+        .inst-section { margin-bottom: 15px; }
+        .inst-section h4 { text-decoration: underline; margin-bottom: 5px; }
+        .inst-list { padding-left: 20px; line-height: 1.6; }
+        .declaration-box { background: #fff; border: 1px solid #ccc; padding: 15px; margin-top: 20px; }
 
-        .red-warning { color: #a94442; font-size: 14px; margin: 20px 0; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-        .declaration { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-top: 20px; }
-        
-        /* --- MAIN EXAM PAGE --- */
+        /* --- EXAM INTERFACE --- */
         #exam-page { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Top Header */
-        .exam-header { background-color: #e2e2e2; padding: 5px 20px; border-bottom: 1px solid #ccc; font-size: 18px; font-weight: bold; color: #333; display: flex; justify-content: space-between; align-items: center;}
-        
-        /* Main Layout */
+        /* Top Header (User Info) */
+        .top-info-bar { display: flex; justify-content: flex-end; padding: 5px 20px; background: #fff; border-bottom: 1px solid #eee; height: 60px; }
+        .user-card { display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 5px 15px; background: #fdfdfd; }
+        .user-img { width: 40px; height: 40px; background: #eee; border: 1px solid #ccc; }
+        .time-box { background: #337ab7; color: white; padding: 5px 10px; font-weight: bold; border-radius: 15px; }
+
+        /* Orange Section Bar */
+        .orange-header { background: var(--nta-orange); display: flex; align-items: center; padding: 0 20px; height: 40px; color: white; gap: 20px; }
+        .exam-title { font-weight: bold; font-size: 16px; }
+        .sec-tabs { display: flex; height: 100%; align-items: flex-end; }
+        .sec-tab { padding: 5px 15px; background: var(--nta-dark-blue); color: white; cursor: pointer; border: 1px solid #1c4d75; border-bottom: none; border-radius: 5px 5px 0 0; margin-right: 5px; font-size: 12px; }
+        .sec-tab.active { background: #fff; color: var(--nta-dark-blue); font-weight: bold; }
+
+        /* Main Body */
         .exam-body { display: flex; flex: 1; overflow: hidden; }
-        .left-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #ccc; }
-        .right-panel { width: 300px; display: flex; flex-direction: column; background: #eef2f5; }
+        .content-area { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #ccc; }
+        .q-title-bar { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-weight: bold; background: #fcfcfc; }
+        .scroll-area { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
+        .nav-circle { position: absolute; right: 20px; top: 10px; width: 30px; height: 30px; border-radius: 50%; background: var(--nta-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 
-        /* Left Panel - Sections */
-        .sections-bar { background: #337ab7; display: flex; padding: 5px 10px; color: white; font-weight: bold; }
-        .sec-tab { padding: 5px 15px; cursor: pointer; margin-right: 5px; background: #286090; border-radius: 4px 4px 0 0; }
-        .sec-tab.active { background: white; color: #337ab7; }
+        /* Sidebar */
+        .sidebar { width: 300px; background: #fff; display: flex; flex-direction: column; }
+        .legend-area { padding: 10px; font-size: 11px; border-bottom: 1px solid #eee; }
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .leg-item { display: flex; align-items: center; gap: 5px; }
+        
+        .palette-container { flex: 1; padding: 10px; overflow-y: auto; background: #eef2f5; }
+        .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; justify-items: center; }
+        
+        /* CIRCULAR PALETTE BUTTONS */
+        .pal-btn { width: 45px; height: 45px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; border: 1px solid #ccc; background: #fff; color: #333; }
+        .btn-not-visited { background: #fff; color: #333; }
+        .btn-not-answered { background: var(--nta-red); color: white; border-color: var(--nta-red); }
+        .btn-answered { background: var(--nta-green); color: white; border-color: var(--nta-green); }
+        .btn-review { background: var(--nta-purple); color: white; border-color: var(--nta-purple); }
+        .btn-ans-review { background: var(--nta-purple); color: white; border-color: var(--nta-purple); position: relative; }
+        .btn-ans-review::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: var(--nta-green); border-radius: 50%; border: 1px solid white; }
 
-        /* Left Panel - Question Area */
-        .question-header { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ccc; background: #f9f9f9; font-weight: bold; }
-        .question-content { flex: 1; padding: 20px; overflow-y: auto; }
-        .question-image { max-width: 100%; border: 1px solid #ddd; padding: 5px; min-height: 100px; }
-        
-        /* Left Panel - Inputs */
-        .options-area { margin-top: 20px; }
-        .option-row { margin-bottom: 10px; font-size: 16px; display: flex; align-items: center; gap: 10px; }
-        .option-row input[type="radio"] { transform: scale(1.2); }
-        .int-box { width: 200px; padding: 8px; font-size: 16px; border: 1px solid #ccc; }
+        /* Footer */
+        .footer { padding: 10px 20px; border-top: 1px solid #ccc; background: #fff; display: flex; justify-content: space-between; }
+        .f-left { display: flex; gap: 10px; }
+        .btn-white { background: #fff; border: 1px solid #ccc; color: #333; padding: 8px 15px; }
+        .btn-blue { background: var(--nta-blue); color: white; padding: 8px 15px; }
+        .btn-orange { background: var(--nta-orange); color: white; padding: 8px 15px; }
+        .btn-green { background: var(--nta-green); color: white; padding: 8px 20px; font-weight: bold; }
 
-        /* Left Panel - Footer Buttons */
-        .exam-footer { display: flex; justify-content: space-between; padding: 10px 20px; background: #f9f9f9; border-top: 1px solid #ccc; }
-        .exam-footer button { padding: 8px 15px; font-weight: bold; border: 1px solid transparent; }
-        .btn-save-next { background: #5cb85c; color: white; border-color: #4cae4c; }
-        .btn-clear { background: #fff; color: #333; border-color: #ccc; }
-        .btn-mark-review { background: #ec971f; color: white; border-color: #d58512; }
-        
-        /* Right Panel - Profile & Timer */
-        .profile-timer { padding: 10px; background: #fff; border-bottom: 1px solid #ccc; text-align: center; }
-        .timer-text { font-size: 18px; font-weight: bold; color: #a94442; display: inline-block; margin-top: 5px; padding: 5px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 3px; }
-
-        /* Right Panel - Palette */
-        .palette-container { padding: 15px; flex: 1; overflow-y: auto; background: #cae8f9; }
-        .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
-        .pal-btn { width: 40px; height: 40px; border: none; cursor: pointer; text-align: center; line-height: 40px; color: white; font-weight: bold; padding: 0; font-size: 14px; }
-        
-        /* Dynamic Button States applied via JS */
-        .btn-not-visited { background: #e2e2e2; border: 1px solid #ccc; color: #333; border-radius: 4px; }
-        .btn-not-answered { background: #d9534f; clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%); }
-        .btn-answered { background: #5cb85c; clip-path: polygon(50% 0%, 100% 25%, 100% 100%, 0 100%, 0 25%); }
-        .btn-review { background: #5a3286; border-radius: 50%; }
-        .btn-ans-review { background: #5a3286; border-radius: 50%; position: relative; }
-        .btn-ans-review::after { content: ''; position: absolute; bottom: 3px; right: 3px; width: 10px; height: 10px; background: #5cb85c; border-radius: 50%; border: 1px solid white;}
-        
-        .submit-btn-area { padding: 15px; background: #cae8f9; text-align: center; border-top: 1px solid #a4d2ed; }
-        .btn-submit { background: #337ab7; color: white; width: 100%; padding: 10px; font-size: 16px; font-weight: bold; border-color: #2e6da4; }
+        /* Keypad */
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 180px; margin-top: 15px; }
+        .key { padding: 10px; background: #eee; border: 1px solid #ccc; font-weight: bold; text-align: center; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="setup-page" class="page-container">
-        <h2 style="margin-top:0;">Mock Test Setup Configuration</h2>
-        
+        <h2>System Configuration</h2>
         <div class="setup-group">
-            <label>1. Select Question Images Folder (Must contain Q1.png, Q2.png, etc.)</label>
-            <input type="file" id="folderInput" webkitdirectory directory multiple class="btn-clear" style="padding: 10px;">
-            <div id="file-count" style="margin-top: 5px; color: green; font-weight: bold;"></div>
+            <label>Select Question Folder</label>
+            <input type="file" id="folderInput" webkitdirectory directory multiple>
         </div>
-
-        <div class="setup-group">
-            <label>2. Exam Name</label>
-            <input type="text" id="cfg-name" value="JEE-Main - 40503621_BTECH">
-        </div>
-
-        <div class="setup-group">
-            <label>3. Total Time (Minutes)</label>
-            <input type="number" id="cfg-time" value="180">
-        </div>
-
-        <div class="setup-group">
-            <label>4. Exam Sections</label>
-            <div id="sections-container"></div>
-            <button class="btn-clear" onclick="addSectionRow()" style="margin-top: 10px; padding: 5px 10px;">+ Add Section</button>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
-        <button class="btn-primary" onclick="proceedToInstructions()">Save Config & Proceed</button>
+        <div class="setup-group"><label>Exam Name</label><input type="text" id="cfg-name" value="JEE-Main - 40503621_BTECH"></div>
+        <div id="sec-rows"></div>
+        <button class="btn-white" onclick="addSec()">+ Add Section</button>
+        <button class="btn-blue" onclick="toInstructions()" style="width:100%; margin-top: 20px;">Save & Continue</button>
     </div>
 
     <div id="instructions-page" class="page-container hidden">
-        <div class="inst-title">Please read the instructions carefully</div>
-        
-        <div class="inst-heading">General Instructions:</div>
-        <ol class="inst-list">
-            <li>Total duration of <span id="lbl-inst-examName"></span> is <span id="lbl-inst-time"></span> min.</li>
-            <li>The clock will be set at the server. The countdown timer in the top right corner of screen will display the remaining time available for you to complete the examination. When the timer reaches zero, the examination will end by itself. You will not be required to end or submit your examination.</li>
-            <li>The Questions Palette displayed on the right side of screen will show the status of each question using one of the following symbols:
-                <ol style="list-style-type: none; padding-left: 0; margin-top: 10px;">
-                    <li style="margin-bottom: 12px;"><span class="pal-icon icon-gray">1</span> You have not visited the question yet.</li>
-                    <li style="margin-bottom: 12px;"><span class="pal-icon icon-red">2</span> You have not answered the question.</li>
-                    <li style="margin-bottom: 12px;"><span class="pal-icon icon-green">3</span> You have answered the question.</li>
-                    <li style="margin-bottom: 12px;"><span class="pal-icon icon-purple">4</span> You have NOT answered the question, but have marked the question for review.</li>
-                    <li style="margin-bottom: 12px;"><span class="pal-icon icon-purple-green">5</span> The question(s) "Answered and Marked for Review" will be considered for evaluation.</li>
-                </ol>
-            </li>
-        </ol>
-
-        <div class="inst-heading">Navigating to a Question:</div>
-        <ol class="inst-list" start="7">
-            <li>To answer a question, do the following:
-                <ol type="a">
-                    <li>Click on the question number in the Question Palette at the right of your screen to go to that numbered question directly. Note that using this option does NOT save your answer to the current question.</li>
-                    <li>Click on <b>Save & Next</b> to save your answer for the current question and then go to the next question.</li>
-                    <li>Click on <b>Mark for Review & Next</b> to save your answer for the current question, mark it for review, and then go to the next question.</li>
-                </ol>
-            </li>
-        </ol>
-
-        <div class="inst-heading">Answering a Question:</div>
-        <ol class="inst-list" start="8">
-            <li>Procedure for answering a multiple choice type question:
-                <ol type="a">
-                    <li>To select your answer, click on the button of one of the options.</li>
-                    <li>To deselect your chosen answer, click on the button of the chosen option again or click on the <b>Clear Response</b> button.</li>
-                    <li>To change your chosen answer, click on the button of another option.</li>
-                    <li>To save your answer, you MUST click on the Save & Next button.</li>
-                </ol>
-            </li>
-        </ol>
-
-        <div class="red-warning">
-            Please note all questions will appear in your default language. This language can be changed for a particular question later on.
+        <div class="inst-header">Please read the instructions carefully</div>
+        <div class="inst-section">
+            <h4>General Instructions:</h4>
+            <ol class="inst-list">
+                <li>Total duration of <span id="disp-name"></span> is 180 min.</li>
+                <li>The clock will be set at the server. The countdown timer in the top right corner... will end by itself.</li>
+                <li>The Questions Palette... status symbols:
+                    <ul>
+                        <li><b>White Circle:</b> Not Visited.</li>
+                        <li><b>Red Circle:</b> Not Answered.</li>
+                        <li><b>Green Circle:</b> Answered.</li>
+                        <li><b>Purple Circle:</b> Marked for Review.</li>
+                    </ul>
+                </li>
+            </ol>
         </div>
-
-        <div class="declaration">
-            <input type="checkbox" id="chk-declaration" onchange="toggleStartBtn()">
-            <label for="chk-declaration">I have read and understood the instructions. All computer hardware allotted to me are in proper working condition. I declare that I am not in possession of / not wearing / not carrying any prohibited gadget like mobile phone, bluetooth devices etc. /any prohibited material with me into the Examination Hall. I agree that in case of not adhering to the instructions, I shall be liable to be debarred from this Test and/or to disciplinary action, which may include ban from future Tests / Examinations.</label>
-            <br><br>
-            <div style="text-align: center;">
-                <button id="btn-start-test" class="btn-primary" style="width: 200px;" disabled onclick="startExam()">PROCEED</button>
-            </div>
+        <div class="inst-section">
+            <h4>Answering a Question:</h4>
+            <ul class="inst-list">
+                <li>To select your answer, click on the button of one of the options.</li>
+                <li>To deselect, click the chosen option again or click <b>Clear Response</b>.</li>
+                <li>To save, you <b>MUST</b> click <b>Save & Next</b>.</li>
+            </ul>
+        </div>
+        <div class="declaration-box">
+            <input type="checkbox" id="declare" onchange="document.getElementById('start-btn').disabled = !this.checked">
+            <label for="declare">I have read and understood the instructions. All computer hardware allotted to me are in proper working condition...</label>
+            <center style="margin-top:20px;"><button id="start-btn" class="btn-blue" disabled onclick="startExam()">PROCEED</button></center>
         </div>
     </div>
 
     <div id="exam-page" class="hidden">
-        <div class="exam-header">
-            <span id="ui-exam-name">Exam Name</span>
+        <div class="top-info-bar">
+            <div class="user-card">
+                <div class="user-img"></div>
+                <div>
+                    <div>Candidate Name: <b>[Your Name]</b></div>
+                    <div>Subject: <b>[Test Practice]</b></div>
+                    <div>Remaining Time: <span class="time-box" id="timer">03:00:00</span></div>
+                </div>
+            </div>
         </div>
-        
+
+        <div class="orange-header">
+            <div class="exam-title">JEE MAIN</div>
+            <div class="sec-tabs" id="tabs"></div>
+        </div>
+
         <div class="exam-body">
-            <div class="left-panel">
-                <div class="sections-bar" id="ui-sections-tabs">
+            <div class="content-area">
+                <div class="q-title-bar"><span id="q-label">Question 1:</span> <span id="q-type">Type: MCQ</span></div>
+                <div class="scroll-area">
+                    <div class="nav-circle">↓</div>
+                    <img id="q-img" style="max-width:100%;" src="" alt="Question Image">
+                    <div id="input-area" style="margin-top:20px;"></div>
+                </div>
+                <div class="footer">
+                    <div class="f-left">
+                        <button class="btn-green" onclick="submitAns('answered')">SAVE & NEXT</button>
+                        <button class="btn-orange" onclick="submitAns('review')">SAVE & MARK FOR REVIEW</button>
+                        <button class="btn-white" onclick="clearAns()">CLEAR RESPONSE</button>
+                        <button class="btn-blue" onclick="markReviewNext()">MARK FOR REVIEW & NEXT</button>
                     </div>
-                
-                <div class="question-header">
-                    <span id="ui-q-type">Question Type: MCQ</span>
-                </div>
-                
-                <div class="question-content">
-                    <h3 style="margin-top: 0; font-size: 16px;">Question <span id="ui-q-num">1</span>:</h3>
-                    <img id="ui-q-image" class="question-image" src="" alt="Image not provided/loaded">
-                    
-                    <div class="options-area" id="ui-input-area">
-                        </div>
-                </div>
-                
-                <div class="exam-footer">
                     <div>
-                        <button class="btn-save-next" onclick="saveAnswer('answered')">Save & Next</button>
-                        <button class="btn-clear" onclick="clearResponse()">Clear Response</button>
-                        <button class="btn-mark-review" onclick="saveAnswer('review')">Save & Mark for Review</button>
+                        <button class="btn-white" onclick="nav(-1)">&lt;&lt; BACK</button>
+                        <button class="btn-white" onclick="nav(1)">NEXT &gt;&gt;</button>
+                        <button class="btn-green" style="margin-left:20px;" onclick="finishExam()">SUBMIT</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="right-panel">
-                <div class="profile-timer">
-                    <div style="color: #666;">Time Left:</div>
-                    <div class="timer-text" id="ui-timer">00:00:00</div>
+
+            <div class="sidebar">
+                <div class="legend-area">
+                    <div class="legend-grid">
+                        <div class="leg-item"><div class="pal-btn btn-not-visited" style="width:20px;height:20px;"></div> Not Visited</div>
+                        <div class="leg-item"><div class="pal-btn btn-not-answered" style="width:20px;height:20px;"></div> Not Answered</div>
+                        <div class="leg-item"><div class="pal-btn btn-answered" style="width:20px;height:20px;"></div> Answered</div>
+                        <div class="leg-item"><div class="pal-btn btn-review" style="width:20px;height:20px;"></div> Marked Review</div>
+                    </div>
                 </div>
-                
                 <div class="palette-container">
-                    <div style="font-weight: bold; margin-bottom: 10px;" id="ui-palette-title">Question Palette:</div>
-                    <div class="palette-grid" id="ui-palette">
-                        </div>
-                </div>
-                
-                <div class="submit-btn-area">
-                    <button class="btn-submit" onclick="submitExam()">Submit Exam</button>
+                    <div class="palette-grid" id="palette"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DATA STATE ---
-        let config = { name: "", timeSec: 0, sections: [] };
-        let questions = []; 
-        let currentQIndex = 0;
-        let timerInterval;
-        let imageDirectory = {}; // Stores mapped local images { "q1.png": "blob:http...", "q2.png": ... }
+        let config = { sections: [] }, questions = [], cur = 0, files = {};
 
-        // --- FILE INPUT WORKAROUND ---
-        document.getElementById('folderInput').addEventListener('change', function(e) {
-            let files = e.target.files;
-            let count = 0;
-            imageDirectory = {}; // reset
-            
-            for (let i = 0; i < files.length; i++) {
-                // We convert the names to lowercase to avoid Q1.PNG vs q1.png issues
-                let filename = files[i].name.toLowerCase();
-                // Create a secure local object URL for each file
-                imageDirectory[filename] = URL.createObjectURL(files[i]);
-                count++;
-            }
-            document.getElementById('file-count').innerText = `${count} files successfully loaded into memory.`;
-        });
+        document.getElementById('folderInput').onchange = (e) => {
+            Array.from(e.target.files).forEach(f => files[f.name.toLowerCase()] = URL.createObjectURL(f));
+        };
 
-        // --- SETUP LOGIC ---
-        window.onload = () => addSectionRow();
-
-        function addSectionRow() {
-            const container = document.getElementById("sections-container");
-            const row = document.createElement("div");
-            row.className = "section-row";
-            row.innerHTML = `
-                <input type="text" placeholder="Section Name (e.g., Physics)" class="sec-name" style="width: 200px;">
-                <select class="sec-type" style="padding: 8px;">
-                    <option value="MCQ">MCQs</option>
-                    <option value="INT">Integer Type</option>
-                </select>
-                <input type="number" placeholder="Start Q" class="sec-start" style="width: 80px;">
-                <input type="number" placeholder="End Q" class="sec-end" style="width: 80px;">
-                <button class="btn-clear" onclick="this.parentElement.remove()">Remove</button>
-            `;
-            container.appendChild(row);
+        function addSec() {
+            const d = document.createElement('div');
+            d.innerHTML = `<input type="text" placeholder="Name" class="s-n"> <select class="s-t"><option value="MCQ">MCQ</option><option value="INT">INT</option></select> <input type="number" placeholder="Start" class="s-s"> <input type="number" placeholder="End" class="s-e">`;
+            document.getElementById('sec-rows').appendChild(d);
         }
+        window.onload = addSec;
 
-        function proceedToInstructions() {
-            config.name = document.getElementById("cfg-name").value;
-            config.timeSec = parseInt(document.getElementById("cfg-time").value) * 60;
-            config.sections = [];
-            
-            const rows = document.querySelectorAll(".section-row");
-            rows.forEach(row => {
-                config.sections.push({
-                    name: row.querySelector(".sec-name").value,
-                    type: row.querySelector(".sec-type").value,
-                    start: parseInt(row.querySelector(".sec-start").value),
-                    end: parseInt(row.querySelector(".sec-end").value)
-                });
+        function toInstructions() {
+            document.querySelectorAll('#sec-rows div').forEach((r, i) => {
+                const s = parseInt(r.querySelector('.s-s').value), e = parseInt(r.querySelector('.s-e').value);
+                config.sections.push({ name: r.querySelector('.s-n').value, type: r.querySelector('.s-t').value });
+                for(let j=s; j<=e; j++) questions.push({ id: j, sIdx: i, type: r.querySelector('.s-t').value, status: 'btn-not-visited', ans: null });
             });
-
-            questions = [];
-            config.sections.forEach((sec, secIdx) => {
-                for (let i = sec.start; i <= sec.end; i++) {
-                    questions.push({
-                        globalId: i,
-                        sectionIndex: secIdx,
-                        type: sec.type,
-                        status: 'btn-not-visited', 
-                        answer: null
-                    });
-                }
-            });
-
-            document.getElementById("lbl-inst-examName").innerText = config.name;
-            document.getElementById("lbl-inst-time").innerText = config.timeSec / 60;
-
-            document.getElementById("setup-page").classList.add("hidden");
-            document.getElementById("instructions-page").classList.remove("hidden");
+            document.getElementById('disp-name').innerText = document.getElementById('cfg-name').value;
+            document.getElementById('setup-page').classList.add('hidden');
+            document.getElementById('instructions-page').classList.remove('hidden');
         }
 
-        function toggleStartBtn() {
-            document.getElementById("btn-start-test").disabled = !document.getElementById("chk-declaration").checked;
-        }
-
-        // --- EXAM LOGIC ---
         function startExam() {
-            document.getElementById("instructions-page").classList.add("hidden");
-            document.getElementById("exam-page").classList.remove("hidden");
-            
-            document.getElementById("ui-exam-name").innerText = config.name;
-            
-            buildSectionTabs();
-            buildPalette();
-            loadQuestion(0);
-            startTimer();
+            document.getElementById('instructions-page').classList.add('hidden');
+            document.getElementById('exam-page').classList.remove('hidden');
+            config.sections.forEach((s, i) => {
+                const t = document.createElement('div'); t.className = 'sec-tab'; t.innerText = s.name;
+                t.onclick = () => loadQ(questions.findIndex(q => q.sIdx === i));
+                document.getElementById('tabs').appendChild(t);
+            });
+            questions.forEach((q, i) => {
+                const b = document.createElement('button'); b.className = 'pal-btn btn-not-visited'; b.innerText = q.id; b.id = 'p-'+i;
+                b.onclick = () => loadQ(i);
+                document.getElementById('palette').appendChild(b);
+            });
+            loadQ(0);
+            startTimer(180 * 60);
         }
 
-        function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        function loadQ(i) {
+            if(questions[cur].status === 'btn-not-visited') questions[cur].status = 'btn-not-answered';
+            cur = i; const q = questions[i];
+            document.getElementById('q-label').innerText = `Question ${q.id}:`;
+            document.getElementById('q-type').innerText = `Type: ${q.type}`;
+            document.getElementById('q-img').src = files[`q${q.id}.png`] || "";
+            
+            const area = document.getElementById('input-area'); area.innerHTML = "";
+            if(q.type === 'MCQ') {
+                [1,2,3,4].forEach(v => area.innerHTML += `<p><input type="radio" name="opt" value="${v}" ${q.ans==v?'checked':''}> (${v})</p>`);
+            } else {
+                area.innerHTML = `<input type="text" id="int-in" readonly value="${q.ans||''}" style="padding:10px; font-size:16px;"> <div class="keypad">${[1,2,3,4,5,6,7,8,9,'.',0,'-'].map(k => `<div class="key" onclick="kp('${k}')">${k}</div>`).join('')}<div class="key" style="grid-column:span 3" onclick="kp('clear')">Clear</div></div>`;
+            }
+            updateUI();
         }
 
-        function startTimer() {
-            let timeLeft = config.timeSec;
-            document.getElementById("ui-timer").innerText = formatTime(timeLeft);
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById("ui-timer").innerText = formatTime(timeLeft);
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    submitExam();
-                }
+        function kp(v) {
+            const i = document.getElementById('int-in');
+            if(v === 'clear') i.value = ""; else i.value += v;
+            questions[cur].ans = i.value;
+        }
+
+        function submitAns(s) {
+            const q = questions[cur];
+            q.ans = q.type === 'MCQ' ? (document.querySelector('input[name="opt"]:checked')?.value || null) : document.getElementById('int-in').value;
+            q.status = q.ans ? (s === 'review' ? 'btn-ans-review' : 'btn-answered') : 'btn-not-answered';
+            nav(1);
+        }
+
+        function markReviewNext() { questions[cur].status = 'btn-review'; nav(1); }
+        function clearAns() { questions[cur].ans = null; questions[cur].status = 'btn-not-answered'; loadQ(cur); }
+        function nav(d) { let n = cur + d; if(n >= 0 && n < questions.length) loadQ(n); }
+
+        function updateUI() {
+            questions.forEach((q, i) => document.getElementById('p-'+i).className = `pal-btn ${q.status}`);
+            document.querySelectorAll('.sec-tab').forEach((t, i) => t.classList.toggle('active', i === questions[cur].sIdx));
+        }
+
+        function startTimer(s) {
+            setInterval(() => {
+                let h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+                document.getElementById('timer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+                if(s-- <= 0) finishExam();
             }, 1000);
         }
 
-        function buildSectionTabs() {
-            const container = document.getElementById("ui-sections-tabs");
-            container.innerHTML = "";
-            config.sections.forEach((sec, idx) => {
-                const tab = document.createElement("div");
-                tab.className = `sec-tab ${idx === 0 ? 'active' : ''}`;
-                tab.innerText = sec.name;
-                container.appendChild(tab);
-            });
-        }
-
-        function buildPalette() {
-            const container = document.getElementById("ui-palette");
-            container.innerHTML = "";
-            questions.forEach((q, idx) => {
-                const btn = document.createElement("button");
-                btn.className = `pal-btn btn-not-visited`;
-                btn.innerText = q.globalId;
-                btn.id = `pal-btn-${idx}`;
-                btn.onclick = () => loadQuestion(idx);
-                container.appendChild(btn);
-            });
-        }
-
-        function loadQuestion(index) {
-            if (questions[currentQIndex].status === 'btn-not-visited') {
-                questions[currentQIndex].status = 'btn-not-answered';
-            }
-
-            currentQIndex = index;
-            const q = questions[currentQIndex];
-
-            // Update UI Labels
-            document.getElementById("ui-q-num").innerText = q.globalId;
-            document.getElementById("ui-q-type").innerText = `Question Type: ${q.type === 'MCQ' ? 'Multiple Choice' : 'Numeric Value'}`;
-            
-            // Load Image from Memory Dictionary
-            const expectedFileName = `q${q.globalId}.png`.toLowerCase();
-            const imgElement = document.getElementById("ui-q-image");
-            
-            if (imageDirectory[expectedFileName]) {
-                imgElement.src = imageDirectory[expectedFileName];
-                imgElement.style.display = 'block';
-            } else {
-                imgElement.src = "";
-                imgElement.alt = `[Image Missing: Expected to find ${expectedFileName} in selected folder]`;
-            }
-            
-            // Render Input Area
-            const inputArea = document.getElementById("ui-input-area");
-            if (q.type === "MCQ") {
-                inputArea.innerHTML = ['1', '2', '3', '4'].map(opt => `
-                    <div class="option-row">
-                        <input type="radio" name="mcq" id="opt${opt}" value="${opt}" ${q.answer === opt ? 'checked' : ''}>
-                        <label for="opt${opt}">&nbsp; Option ${opt}</label>
-                    </div>
-                `).join('');
-            } else {
-                inputArea.innerHTML = `
-                    <div class="option-row">
-                        <input type="text" id="int-ans" class="int-box" placeholder="Enter numeric value" value="${q.answer || ''}">
-                    </div>
-                `;
-            }
-
-            // Update Tabs & Palette
-            document.querySelectorAll(".sec-tab").forEach((tab, idx) => {
-                tab.classList.toggle("active", idx === q.sectionIndex);
-            });
-            document.getElementById("ui-palette-title").innerText = `${config.sections[q.sectionIndex].name} Palette:`;
-            
-            updatePaletteUI();
-        }
-
-        function getCurrentInput() {
-            const q = questions[currentQIndex];
-            if (q.type === "MCQ") {
-                const selected = document.querySelector('input[name="mcq"]:checked');
-                return selected ? selected.value : null;
-            } else {
-                const val = document.getElementById("int-ans").value.trim();
-                return val === "" ? null : val;
-            }
-        }
-
-        function saveAnswer(actionType) {
-            const q = questions[currentQIndex];
-            const input = getCurrentInput();
-
-            if (input !== null) {
-                q.answer = input;
-                q.status = actionType === 'review' ? 'btn-ans-review' : 'btn-answered';
-            } else {
-                q.answer = null;
-                q.status = actionType === 'review' ? 'btn-review' : 'btn-not-answered';
-            }
-
-            if (currentQIndex < questions.length - 1) {
-                loadQuestion(currentQIndex + 1);
-            } else {
-                updatePaletteUI();
-            }
-        }
-
-        function clearResponse() {
-            questions[currentQIndex].answer = null;
-            questions[currentQIndex].status = 'btn-not-answered';
-            loadQuestion(currentQIndex); 
-        }
-
-        function updatePaletteUI() {
-            questions.forEach((q, idx) => {
-                document.getElementById(`pal-btn-${idx}`).className = `pal-btn ${q.status}`;
-            });
-        }
-
-        function submitExam() {
-            if(confirm("Are you sure you want to submit the exam?")) {
-                clearInterval(timerInterval);
-                
-                const exportData = {
-                    examName: config.name,
-                    submittedAt: new Date().toISOString(),
-                    responses: questions.map(q => ({
-                        questionNumber: q.globalId,
-                        section: config.sections[q.sectionIndex].name,
-                        type: q.type,
-                        status: q.status.replace('btn-', ''), // clean up status string
-                        givenAnswer: q.answer
-                    }))
-                };
-
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", `JEE_Mock_Results_${Date.now()}.json`);
-                document.body.appendChild(downloadAnchorNode); 
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-
-                document.body.innerHTML = `<h2 style="text-align:center; margin-top: 50px;">Exam Submitted Successfully. Your responses have been downloaded.</h2>`;
-            }
-        }
+        function finishExam() { alert("Exam Submitted!"); location.reload(); }
     </script>
 </body>
 </html>
