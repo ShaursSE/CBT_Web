@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBT Exam Platform</title>
+<style>
+/* ═══════════════════ RESET ═══════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:Arial,'Segoe UI',sans-serif;font-size:13px;color:#222;background:#f0f0f0}
+
+/* ═══════════════════ SETUP PAGE ═══════════════════ */
+#setupPage{min-height:100vh;background:#eef2f7;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px 60px}
+.setup-card{background:#fff;border-radius:8px;box-shadow:0 2px 14px rgba(0,0,0,.13);width:100%;max-width:760px;padding:28px 32px}
+.setup-card h1{font-size:20px;color:#1a4fa0;border-bottom:3px solid #f47920;padding-bottom:9px;margin-bottom:22px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:#444;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.form-group input[type=text],.form-group input[type=number],.form-group select{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:13px;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:#1a4fa0}
+.folder-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:#1a4fa0;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px}
+.folder-btn:hover{background:#163d80}
+.folder-info{margin-top:4px;font-size:11px;color:#555}
+#folderInput{display:none}
+
+/* exam-type toggle */
+.exam-type-row{display:flex;gap:12px;margin-bottom:18px}
+.exam-type-btn{flex:1;padding:12px;border:2px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:14px;font-weight:700;text-align:center;transition:all .15s}
+.exam-type-btn:hover{border-color:#1a4fa0;background:#eef3fb}
+.exam-type-btn.active-mains{border-color:#f47920;background:#fff6ef;color:#f47920}
+.exam-type-btn.active-adv{border-color:#1a4fa0;background:#eef3fb;color:#1a4fa0}
+
+/* sections */
+.sections-header{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px}
+.sections-header h2{font-size:14px;color:#1a4fa0;font-weight:700}
+.add-section-btn{padding:6px 12px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700}
+.add-section-btn:hover{background:#1e7e34}
+.section-row{background:#f7f9fc;border:1px solid #dce3ef;border-radius:5px;padding:10px 12px;margin-bottom:8px;position:relative}
+.section-fields{display:grid;gap:7px}
+.section-fields.mains-fields{grid-template-columns:1.8fr 1.3fr 1fr 1fr}
+.section-fields.adv-fields{grid-template-columns:1.6fr 1.4fr 0.8fr 0.8fr 0.8fr 0.8fr}
+.section-row label{font-size:11px;color:#666;display:block;margin-bottom:2px}
+.section-row input,.section-row select{width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:12px}
+.del-section{position:absolute;top:7px;right:9px;background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;font-weight:700;line-height:1}
+.setup-submit{margin-top:24px;padding:11px 0;background:#f47920;color:#fff;border:none;border-radius:5px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.setup-submit:hover{background:#d4641a}
+
+/* ═══════════════════ MAINS CBT PAGE ═══════════════════ */
+#cbtPage{display:none;flex-direction:column;height:100vh;overflow:hidden}
+
+/* mains header */
+.mains-header{background:#fff;border-bottom:2px solid #ddd;display:flex;align-items:center;justify-content:space-between;padding:4px 14px;flex-shrink:0;min-height:56px}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-svg{width:46px;height:46px;flex-shrink:0}
+.logo-text-col{display:flex;flex-direction:column}
+.agency-name{font-size:15px;font-weight:800;color:#1a4fa0;line-height:1.2}
+.tagline{background:#2d8a2d;color:#fff;font-size:10px;font-style:italic;padding:1px 6px;border-radius:2px;display:inline-block;margin-top:2px}
+.candidate-box{text-align:right;font-size:12px;line-height:1.7;color:#333}
+.candidate-box b{color:#1a4fa0}
+.timer-pill{display:inline-block;background:#1756b8;color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px;letter-spacing:1px;min-width:82px;text-align:center}
+.timer-pill.warn{background:#d32f2f}
+
+/* mains tabbar */
+.cbt-tabbar{background:#f47920;display:flex;align-items:stretch;flex-shrink:0;min-height:36px}
+.exam-name-lbl{color:#fff;font-weight:800;font-size:14px;padding:0 14px;display:flex;align-items:center;white-space:nowrap}
+.section-tabs{display:flex;align-items:center;gap:3px;padding:4px;flex:1;flex-wrap:nowrap;overflow-x:auto}
+.tab-btn{padding:4px 14px;background:#1756b8;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:700;border-radius:3px;white-space:nowrap}
+.tab-btn.active{background:#fff;color:#1a4fa0}
+.tab-btn:hover:not(.active){background:#0d3d8a}
+.dl-btn-wrap{display:flex;align-items:center;padding:0 8px}
+.dl-btn{padding:4px 12px;background:#1756b8;color:#fff;border:2px solid #fff;border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap}
+
+/* mains body */
+.cbt-body{display:flex;flex:1;overflow:hidden;min-height:0}
+.q-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.q-header-strip{background:#f5f5f5;border-bottom:1px solid #ddd;padding:5px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.q-title{font-size:13px;font-weight:700}
+.q-type-tag{font-size:12px;color:#555}
+.q-scroll{flex:1;overflow-y:auto;padding:8px 12px;min-height:0;background:#fff}
+.q-scroll img{max-width:100%;display:block}
+.q-no-img{color:#aaa;font-style:italic;padding:8px 0;font-size:13px}
+.q-options-wrap{background:#fff;border-top:1px solid #e0e0e0;padding:6px 12px;flex-shrink:0}
+.opt-list{list-style:none;display:flex;flex-direction:column;gap:4px}
+.opt-row{display:flex;align-items:center;gap:8px;cursor:pointer;padding:3px 0;user-select:none}
+.opt-circle{width:15px;height:15px;border-radius:50%;border:2px solid #888;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.opt-row.sel .opt-circle{border-color:#1756b8}
+.opt-inner{width:7px;height:7px;border-radius:50%;background:#1756b8;display:none}
+.opt-row.sel .opt-inner{display:block}
+.opt-text{font-size:13px;color:#222}
+/* integer keypad mains */
+.int-wrap{padding:4px 0}
+.int-display{display:inline-block;background:#fff;border:2px solid #1756b8;border-radius:4px;padding:5px 12px;font-size:20px;font-weight:700;min-width:150px;min-height:38px;letter-spacing:2px;color:#1756b8;margin-bottom:7px}
+.keypad{display:grid;grid-template-columns:repeat(3,50px);gap:5px}
+.kbtn{padding:9px;background:#f0f4f8;border:1px solid #bbb;border-radius:3px;font-size:14px;font-weight:700;cursor:pointer;text-align:center}
+.kbtn:hover{background:#dce9f7;border-color:#1756b8}
+.kbtn.kbs{background:#fdecea;border-color:#e74c3c;color:#c0392b}
+.kbtn.kclr{background:#fff3cd;border-color:#e67e00;color:#7a4300}
+.kbtn.kz{grid-column:span 2}
+/* mains action bar */
+.action-bar{background:#f5f5f5;border-top:2px solid #ccc;padding:6px 10px;flex-shrink:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.abn{padding:7px 12px;border:none;border-radius:3px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.ab-save-next{background:#28a745;color:#fff}
+.ab-save-mark{background:#f47920;color:#fff}
+.ab-clear{background:#fff;color:#333;border:1px solid #999}
+.ab-mark-next{background:#1756b8;color:#fff}
+.ab-back{background:#fff;color:#333;border:1px solid #888}
+.ab-next{background:#fff;color:#333;border:1px solid #888}
+.ab-submit{background:#28a745;color:#fff;margin-left:auto}
+.ab-save-next:hover{background:#1e7e34}
+.ab-save-mark:hover{background:#d4641a}
+.ab-mark-next:hover{background:#0d3d8a}
+.ab-back:hover,.ab-next:hover{background:#eee}
+.ab-submit:hover{background:#1e7e34}
+/* mains sidebar */
+.cbt-sidebar{width:230px;flex-shrink:0;background:#fff;border-left:1px solid #ddd;display:flex;flex-direction:column;overflow:hidden}
+.sb-inner{flex:1;overflow-y:auto;padding:8px 10px}
+.sb-legend{display:grid;grid-template-columns:1fr 1fr;gap:5px 6px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #e8e8e8}
+.lg-row{display:flex;align-items:center;gap:5px;font-size:11px;color:#444}
+.lg-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;font-size:9px;font-weight:700}
+.lg-nv{background:#c0c0c0}
+.lg-na{background:#e74c3c}
+.lg-ans{background:#28a745}
+.lg-mk{background:#8e44ad}
+.sb-sec{font-size:11px;font-weight:700;color:#fff;background:#1756b8;padding:3px 8px;border-radius:3px;margin:6px 0 4px}
+.qgrid{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.qb{width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid transparent;transition:transform .1s}
+.qb:hover{transform:scale(1.12)}
+.qb.not-visited{background:#c0c0c0;color:#333;border-color:#c0c0c0}
+.qb.not-answered{background:#e74c3c;border-color:#e74c3c}
+.qb.answered{background:#28a745;border-color:#28a745}
+.qb.marked{background:#8e44ad;border-color:#8e44ad}
+.qb.answered-marked{background:#8e44ad;border-color:#28a745}
+.qb.cur{outline:3px solid #f47920;outline-offset:2px}
+
+/* ═══════════════════ ADVANCED CBT PAGE ═══════════════════ */
+#advPage{display:none;flex-direction:column;height:100vh;overflow:hidden}
+
+/* adv top logo bar */
+.adv-logobar{background:#fff;border-bottom:1px solid #ccc;display:flex;align-items:center;justify-content:space-between;padding:4px 12px;flex-shrink:0;min-height:60px}
+.adv-logo-left{display:flex;align-items:center;gap:10px}
+.adv-logo-left img{height:50px;width:auto}
+.adv-logo-text{display:flex;flex-direction:column;line-height:1.3}
+.adv-logo-text .adv-title{font-size:13px;font-weight:800;color:#1a0080}
+.adv-logo-text .adv-sub{font-size:11px;color:#333}
+.adv-logo-center{display:flex;flex-direction:column;align-items:center;gap:2px}
+.adv-logo-center .adv-iit-name{font-size:12px;font-weight:700;color:#8b0000}
+.adv-logo-center .adv-iit-sub{font-size:10px;color:#555}
+.adv-profile-wrap{display:flex;align-items:center;gap:10px}
+.adv-profile-icon{width:55px;height:55px;background:#b0c8e8;border:2px solid #999;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.adv-profile-icon svg{width:40px;height:40px}
+.adv-candidate-name{font-size:14px;font-weight:700;color:#222}
+
+/* adv dark bar */
+.adv-darkbar{background:#1a237e;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:5px 12px;flex-shrink:0;min-height:32px;font-size:12px;font-weight:700}
+.adv-darkbar-left{display:flex;align-items:center;gap:10px}
+.adv-exam-title{font-size:12px}
+.adv-darkbar-right{display:flex;align-items:center;gap:12px}
+.adv-top-btn{background:#fff;color:#1a237e;border:none;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px}
+.adv-top-btn:hover{background:#e8e8e8}
+
+/* adv paper selector bar */
+.adv-paperbar{background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;padding:0 8px;flex-shrink:0;min-height:34px;position:relative}
+.adv-paper-arrow{background:none;border:none;cursor:pointer;font-size:16px;color:#555;padding:4px 6px;flex-shrink:0}
+.adv-paper-arrow:hover{color:#1a237e}
+.adv-paper-btn{background:#1756b8;color:#fff;border:none;border-radius:3px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.adv-time-right{margin-left:auto;font-size:12px;font-weight:700;color:#333;padding-right:6px}
+.adv-time-right span{color:#d32f2f}
+
+/* adv sections row */
+.adv-sections-row{background:#fff;border-bottom:1px solid #ddd;flex-shrink:0;display:flex;align-items:center;padding:0 6px;min-height:34px;overflow:hidden}
+.adv-sections-row .sec-scroll{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;padding:3px 2px}
+.adv-sec-tab{display:flex;align-items:center;gap:4px;padding:4px 10px;background:#e0e0e0;border:1px solid #ccc;border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;color:#333;white-space:nowrap;position:relative}
+.adv-sec-tab.active{background:#1756b8;color:#fff;border-color:#1756b8}
+.adv-sec-tab:hover:not(.active){background:#c8d8f0;border-color:#1756b8}
+.adv-sec-tab .info-badge{width:14px;height:14px;border-radius:50%;background:#1756b8;color:#fff;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.adv-sec-tab.active .info-badge{background:#fff;color:#1756b8}
+/* section tooltip */
+.sec-tooltip{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #ccc;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:8px 12px;z-index:50;min-width:200px;font-size:11px;white-space:nowrap}
+.adv-sec-tab:hover .sec-tooltip{display:block}
+.sec-tooltip table{border-collapse:collapse;width:100%}
+.sec-tooltip td{padding:2px 6px;color:#333}
+.sec-tooltip td:first-child{font-weight:700;color:#1a237e}
+
+/* adv q-type+marks bar */
+.adv-qmeta-bar{background:#f5f5f5;border-bottom:1px solid #ddd;display:flex;align-items:center;justify-content:space-between;padding:4px 12px;flex-shrink:0;font-size:12px}
+.adv-qmeta-left{color:#333;font-weight:700}
+.adv-qmeta-right{color:#333}
+.adv-qmeta-right span{color:#c00;font-weight:700}
+
+/* adv lang bar */
+.adv-langbar{background:#3a5998;color:#fff;display:flex;align-items:center;justify-content:flex-end;padding:3px 10px;flex-shrink:0;min-height:28px;font-size:11px;gap:6px}
+.adv-langbar select{padding:2px 6px;font-size:11px;border-radius:3px;border:none;outline:none}
+
+/* adv main body */
+.adv-body{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* adv left panel */
+.adv-q-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#fff}
+.adv-q-scroll{flex:1;overflow-y:auto;min-height:0;padding:10px 14px}
+.adv-q-scroll img{max-width:100%;display:block}
+
+/* adv options */
+.adv-options-wrap{padding:8px 14px;flex-shrink:0;background:#fff}
+/* single correct / matrix match — radio */
+.adv-opt-row{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;user-select:none}
+.adv-opt-circle{width:16px;height:16px;border-radius:50%;border:2px solid #888;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.adv-opt-row.sel .adv-opt-circle{border-color:#1756b8}
+.adv-opt-inner{width:8px;height:8px;border-radius:50%;background:#1756b8;display:none}
+.adv-opt-row.sel .adv-opt-inner{display:block}
+.adv-opt-text{font-size:13px}
+/* multiple correct — checkboxes */
+.adv-chk-row{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;user-select:none}
+.adv-chk-box{width:16px;height:16px;border:2px solid #888;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.adv-chk-row.sel .adv-chk-box{background:#1756b8;border-color:#1756b8}
+.adv-chk-inner{width:9px;height:9px;background:#fff;clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0%,43% 62%);display:none}
+.adv-chk-row.sel .adv-chk-inner{display:block}
+/* adv integer */
+.adv-int-display{display:block;background:#fff;border:1px solid #888;padding:4px 10px;font-size:16px;font-weight:700;min-width:160px;min-height:32px;letter-spacing:1px;color:#222;margin-bottom:8px}
+.adv-keypad{display:inline-grid;grid-template-columns:repeat(3,48px);gap:4px}
+.adv-kbtn{padding:7px;background:#fff;border:1px solid #888;border-radius:2px;font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+.adv-kbtn:hover{background:#e8f0ff}
+.adv-kbtn.wide{grid-column:span 3}
+
+/* adv action bar */
+.adv-action-bar{background:#f0f0f0;border-top:1px solid #ccc;padding:8px 12px;flex-shrink:0;display:flex;align-items:center;gap:8px}
+.adv-btn{padding:8px 16px;border-radius:3px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;border:1px solid #aaa;background:#fff;color:#333}
+.adv-btn:hover{background:#e8e8e8}
+.adv-btn-primary{background:#1756b8;color:#fff;border-color:#1756b8}
+.adv-btn-primary:hover{background:#0d3d8a}
+.adv-btn-submit{background:#1756b8;color:#fff;border-color:#1756b8;margin-left:auto}
+.adv-btn-submit:hover{background:#0d3d8a}
+.adv-footer-bar{background:#1a237e;color:#fff;text-align:center;padding:3px;font-size:10px;flex-shrink:0}
+
+/* adv sidebar */
+.adv-sidebar{width:210px;flex-shrink:0;background:#d8e4f0;display:flex;flex-direction:column;overflow:hidden;border-left:1px solid #aaa}
+.adv-sb-top{background:#d8e4f0;padding:6px 8px;flex-shrink:0}
+/* adv legend */
+.adv-legend{display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:#d8e4f0;border-bottom:1px solid #bbb}
+.adv-lg-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#222}
+.adv-lg-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.adv-lg-sq{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border-radius:3px;position:relative}
+.adv-lg-half{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;border-radius:50%;background:linear-gradient(135deg,#28a745 50%,#8e44ad 50%)}
+.adv-dot-ans{background:#28a745}
+.adv-dot-na{background:#e74c3c}
+.adv-dot-nv{background:#c0c0c0;color:#333}
+.adv-dot-mk{background:#8e44ad}
+
+/* adv sidebar section */
+.adv-sb-sec-title{background:#1756b8;color:#fff;padding:5px 10px;font-size:12px;font-weight:700}
+.adv-sb-sec-sub{font-size:11px;color:#444;padding:4px 10px 2px;font-style:italic}
+.adv-sb-inner{flex:1;overflow-y:auto;padding:6px 8px}
+.adv-qgrid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.adv-qb{width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid transparent}
+.adv-qb:hover{opacity:.85}
+.adv-qb.not-visited{background:#fff;color:#333;border:2px solid #888}
+.adv-qb.not-answered{background:#e74c3c;border-color:#e74c3c}
+.adv-qb.answered{background:#28a745;border-color:#28a745}
+.adv-qb.marked{background:#8e44ad;border-color:#8e44ad}
+.adv-qb.answered-marked{background:linear-gradient(135deg,#28a745 50%,#8e44ad 50%);border:2px solid #28a745}
+.adv-qb.cur{outline:2px solid #f47920;outline-offset:2px}
+.adv-profile-small{display:flex;flex-direction:column;align-items:center;padding:6px;border-top:1px solid #bbb;flex-shrink:0;background:#d8e4f0}
+.adv-profile-small .adv-profile-icon-sm{width:40px;height:40px;background:#b0c8e8;border:1px solid #888;border-radius:3px;display:flex;align-items:center;justify-content:center}
+
+/* ═══════════════════ MODAL ═══════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:8px;padding:24px 28px;max-width:420px;width:92%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.modal h2{color:#1756b8;font-size:16px;margin-bottom:10px}
+.modal p{font-size:13px;color:#444;margin-bottom:16px;line-height:1.6}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.modal-btns button{padding:8px 20px;border-radius:4px;border:none;cursor:pointer;font-size:13px;font-weight:700}
+.btn-cancel{background:#e0e0e0;color:#333}
+.btn-confirm{background:#d32f2f;color:#fff}
+
+/* ═══════════════════ ANSWER KEY PAGE ═══════════════════ */
+#answerKeyPage{display:none;min-height:100vh;background:#eef2f7;flex-direction:column;align-items:center;padding:28px 16px 60px}
+.ak-card{background:#fff;border-radius:8px;box-shadow:0 2px 14px rgba(0,0,0,.12);width:100%;max-width:900px;padding:24px 28px}
+.ak-card h1{font-size:18px;color:#1756b8;border-bottom:3px solid #f47920;padding-bottom:8px;margin-bottom:16px}
+.ak-upload-row{display:flex;align-items:center;gap:10px;padding:10px;background:#f0f7ff;border:2px dashed #1756b8;border-radius:5px;margin-bottom:16px}
+.ak-upload-row label{font-weight:700;color:#1756b8;font-size:13px;white-space:nowrap}
+.ak-upload-row input{flex:1;font-size:13px}
+.ak-upload-row button{padding:5px 13px;background:#1756b8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700}
+.ak-section{margin-bottom:18px}
+.ak-section h3{font-size:13px;color:#fff;background:#1756b8;padding:5px 12px;border-radius:4px;margin-bottom:8px}
+.ak-marks-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f7f9fc;border:1px solid #ddd;border-radius:4px;padding:8px 12px;margin-bottom:10px}
+.ak-marks-row label{font-size:11px;color:#666;display:block;margin-bottom:2px}
+.ak-marks-row input{width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px}
+.ak-q-row{display:grid;gap:8px;align-items:center;margin-bottom:5px;font-size:12px}
+.ak-q-row.mcq-row{grid-template-columns:50px 1fr 130px}
+.ak-q-row.sa-row{grid-template-columns:50px 1fr 130px}
+.ak-q-row.multi-row{grid-template-columns:50px 1fr 130px}
+.ak-q-row .qlbl{font-weight:700;color:#333}
+.ak-q-row input,.ak-q-row select{padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:12px;width:100%}
+.ak-q-row .your-ans{font-size:11px;color:#666}
+.ak-q-row .your-ans b{color:#1756b8}
+.multi-correct-input{display:flex;gap:5px;flex-wrap:wrap}
+.multi-correct-input label{display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;padding:2px 5px;border:1px solid #ccc;border-radius:3px}
+.multi-correct-input label:has(input:checked){background:#dce9f7;border-color:#1756b8}
+.ak-eval-btn{padding:10px 0;background:#f47920;color:#fff;border:none;border-radius:5px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:12px}
+.ak-eval-btn:hover{background:#d4641a}
+
+/* ═══════════════════ RESULT PAGE ═══════════════════ */
+#resultPage{display:none;min-height:100vh;background:#eef2f7;flex-direction:column;align-items:center;padding:28px 16px 60px}
+.result-card{background:#fff;border-radius:8px;box-shadow:0 2px 14px rgba(0,0,0,.12);width:100%;max-width:860px;padding:24px 28px}
+.result-card h1{font-size:18px;color:#1756b8;border-bottom:3px solid #f47920;padding-bottom:8px;margin-bottom:20px}
+.result-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.r-box{text-align:center;padding:14px;border-radius:7px}
+.r-box .val{font-size:28px;font-weight:800}
+.r-box .lbl{font-size:12px;color:#666;margin-top:2px}
+.r-box.pos{background:#e8f8ee;border:2px solid #28a745}.r-box.pos .val{color:#28a745}
+.r-box.neg{background:#fdecea;border:2px solid #e74c3c}.r-box.neg .val{color:#e74c3c}
+.r-box.tot{background:#eef3fb;border:2px solid #1756b8}.r-box.tot .val{color:#1756b8}
+.sec-result{margin-bottom:14px}
+.sec-result h3{font-size:13px;font-weight:700;color:#1756b8;margin-bottom:5px}
+.sec-result table{width:100%;border-collapse:collapse;font-size:12px}
+.sec-result th{background:#1756b8;color:#fff;padding:5px 8px;text-align:left}
+.sec-result td{padding:4px 8px;border-bottom:1px solid #eee}
+.sec-result tr:nth-child(even) td{background:#f7f9fc}
+.restart-btn{margin-top:20px;padding:10px 26px;background:#f47920;color:#fff;border:none;border-radius:5px;font-size:14px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════╗
+     ║          SETUP PAGE             ║
+     ╚══════════════════════════════════╝ -->
+<div id="setupPage">
+ <div class="setup-card">
+  <h1>📋 CBT Exam Setup</h1>
+
+  <!-- Exam type -->
+  <div class="form-group">
+   <label>Select Exam Type</label>
+   <div class="exam-type-row">
+    <button class="exam-type-btn active-mains" id="btnMains" onclick="setExamType('MAINS')">🎯 JEE MAINS</button>
+    <button class="exam-type-btn" id="btnAdv"   onclick="setExamType('ADVANCED')">🏆 JEE ADVANCED</button>
+   </div>
+  </div>
+
+  <div class="form-group">
+   <label>Questions Folder (Q1.png, Q2.png … images)</label>
+   <button class="folder-btn" onclick="document.getElementById('folderInput').click()">📁 Choose Folder</button>
+   <input type="file" id="folderInput" webkitdirectory multiple accept="image/*">
+   <div class="folder-info" id="folderInfo">No folder selected</div>
+  </div>
+
+  <div class="form-group">
+   <label>Exam / Paper Name</label>
+   <input type="text" id="examName" value="JEE MAINS">
+  </div>
+  <div class="form-group">
+   <label>Candidate Name</label>
+   <input type="text" id="candidateName" value="[Your Name]">
+  </div>
+  <div class="form-group">
+   <label>Total Time (minutes)</label>
+   <input type="number" id="examTime" value="180" min="10" max="600">
+  </div>
+
+  <div class="sections-header">
+   <h2>Sections</h2>
+   <button class="add-section-btn" onclick="addSection()">+ Add Section</button>
+  </div>
+  <div id="sectionsContainer"></div>
+
+  <button class="setup-submit" onclick="startExam()">Save &amp; Continue →</button>
+ </div>
+</div>
+
+<!-- ╔══════════════════════════════════╗
+     ║       MAINS CBT PAGE            ║
+     ╚══════════════════════════════════╝ -->
+<div id="cbtPage">
+ <div class="mains-header">
+  <div class="logo-wrap">
+   <svg class="logo-svg" viewBox="0 0 46 46"><circle cx="23" cy="23" r="23" fill="#f47920"/><circle cx="23" cy="23" r="14" fill="#2d8a2d"/><polyline points="14,23 20,30 32,16" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+   <div class="logo-text-col">
+    <span class="agency-name">NATIONAL TESTING AGENCY</span>
+    <span class="tagline">Excellence in Assessment</span>
+   </div>
+  </div>
+  <div class="candidate-box">
+   Candidate Name : <b id="hdrName">[Your Name]</b><br>
+   Subject Name &nbsp;&nbsp;&nbsp;: <b id="hdrSubject">Test</b><br>
+   Remaining Time : <span class="timer-pill" id="timerDisplay">03:00:00</span>
+  </div>
+ </div>
+ <div class="cbt-tabbar">
+  <span class="exam-name-lbl" id="examLbl">JEE MAIN</span>
+  <div class="section-tabs" id="sectionTabs"></div>
+  <div class="dl-btn-wrap"><button class="dl-btn" onclick="downloadAnswers()">⬇ DOWNLOAD</button></div>
+ </div>
+ <div class="cbt-body">
+  <div class="q-panel">
+   <div class="q-header-strip">
+    <span class="q-title" id="qTitle">Question 1 :</span>
+    <span class="q-type-tag" id="qTypeTag">Type: MCQ</span>
+   </div>
+   <div class="q-scroll" id="qScroll"><div id="qImgWrap"></div></div>
+   <div class="q-options-wrap" id="qOptionsWrap"></div>
+   <div class="action-bar">
+    <button class="abn ab-save-next"  onclick="saveAndNext()">SAVE &amp; NEXT</button>
+    <button class="abn ab-save-mark"  onclick="saveAndMark()">SAVE &amp; MARK FOR REVIEW</button>
+    <button class="abn ab-clear"      onclick="clearResponse()">CLEAR RESPONSE</button>
+    <button class="abn ab-mark-next"  onclick="markAndNext()">MARK FOR REVIEW &amp; NEXT</button>
+    <button class="abn ab-back"       onclick="goBack()">&lt;&lt; BACK</button>
+    <button class="abn ab-next"       onclick="goNext()">NEXT &gt;&gt;</button>
+    <button class="abn ab-submit"     onclick="showSubmitModal()">SUBMIT</button>
+   </div>
+  </div>
+  <div class="cbt-sidebar"><div class="sb-inner" id="sbInner"></div></div>
+ </div>
+</div>
+
+<!-- ╔══════════════════════════════════╗
+     ║      ADVANCED CBT PAGE          ║
+     ╚══════════════════════════════════╝ -->
+<div id="advPage">
+ <!-- Logo bar -->
+ <div class="adv-logobar">
+  <div class="adv-logo-left">
+   <!-- JEE Advanced logo placeholder -->
+   <svg width="70" height="50" viewBox="0 0 70 50"><rect width="70" height="50" rx="4" fill="#1a0080"/><text x="35" y="20" text-anchor="middle" fill="#ffd700" font-size="9" font-weight="bold">JEE</text><text x="35" y="31" text-anchor="middle" fill="#ffd700" font-size="7">ADVANCED</text><text x="35" y="41" text-anchor="middle" fill="#fff" font-size="6" id="advYearSvg">2026</text></svg>
+   <div class="adv-logo-text">
+    <span class="adv-title">संयुक्त प्रवेश परीक्षा (उच्च) २०२६</span>
+    <span class="adv-sub">Joint Entrance Examination (Advanced) 2026</span>
+   </div>
+  </div>
+  <div class="adv-logo-center">
+   <!-- IIT logo placeholder -->
+   <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="22" fill="#8b0000"/><text x="22" y="26" text-anchor="middle" fill="#ffd700" font-size="10" font-weight="bold">IIT</text></svg>
+   <span class="adv-iit-name">Indian Institute of Technology Roorkee</span>
+   <span class="adv-iit-sub">आयोजक संस्था | Organising Institute</span>
+  </div>
+  <div class="adv-profile-wrap">
+   <div class="adv-profile-icon">
+    <svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="8" fill="#5577aa"/><ellipse cx="20" cy="34" rx="14" ry="9" fill="#5577aa"/></svg>
+   </div>
+   <span class="adv-candidate-name" id="advHdrName">John Smith</span>
+  </div>
+ </div>
+
+ <!-- Dark bar -->
+ <div class="adv-darkbar">
+  <div class="adv-darkbar-left">
+   <span class="adv-exam-title" id="advExamTitle">JEE Advanced 2026 Paper 1 Mock Exam</span>
+  </div>
+  <div class="adv-darkbar-right">
+   <button class="adv-top-btn">ℹ Instructions</button>
+   <button class="adv-top-btn" onclick="downloadAnswers()">📄 Question Paper</button>
+  </div>
+ </div>
+
+ <!-- Paper selector bar -->
+ <div class="adv-paperbar">
+  <button class="adv-paper-arrow" onclick="shiftSectionLeft()">&#9664;</button>
+  <button class="adv-paper-btn" id="advPaperBtn">JEE Advanced 2026 Pa... ℹ</button>
+  <button class="adv-paper-arrow" onclick="shiftSectionRight()">&#9654;</button>
+  <span class="adv-time-right">Time Left : <span id="advTimer">179:00</span></span>
+ </div>
+
+ <!-- Sections row -->
+ <div class="adv-sections-row">
+  <div class="sec-scroll" id="advSectionTabs"></div>
+ </div>
+
+ <!-- Q type + marks bar -->
+ <div class="adv-qmeta-bar">
+  <span class="adv-qmeta-left" id="advQTypeLbl">Question Type: MCQ</span>
+  <span class="adv-qmeta-right" id="advMarksMeta">Marks for correct answer: <span>3</span> | Negative Marks: <span>1.0</span></span>
+ </div>
+
+ <!-- Language bar -->
+ <div class="adv-langbar">
+  View in : <select id="advLangSel"><option>English</option></select>
+ </div>
+
+ <!-- Body -->
+ <div class="adv-body">
+  <!-- left panel -->
+  <div class="adv-q-panel">
+   <div class="adv-q-scroll" id="advQScroll"><div id="advQImgWrap"></div></div>
+   <div class="adv-options-wrap" id="advOptionsWrap"></div>
+   <div class="adv-action-bar">
+    <button class="adv-btn" onclick="markAndNext()">Mark for Review &amp; Next</button>
+    <button class="adv-btn" onclick="clearResponse()">Clear Response</button>
+    <button class="adv-btn adv-btn-primary" onclick="saveAndNext()">Save &amp; Next</button>
+    <button class="adv-btn adv-btn-submit" onclick="showSubmitModal()">Submit</button>
+   </div>
+   <div class="adv-footer-bar">Version : 17.07.00</div>
+  </div>
+
+  <!-- right sidebar -->
+  <div class="adv-sidebar">
+   <!-- legend -->
+   <div class="adv-legend">
+    <div class="adv-lg-row"><div class="adv-lg-dot adv-dot-ans" id="advCntAns">0</div>Answered</div>
+    <div class="adv-lg-row"><div class="adv-lg-dot adv-dot-na"  id="advCntNa">1</div>Not Answered</div>
+    <div class="adv-lg-row"><div class="adv-lg-dot adv-dot-nv"  id="advCntNv">3</div>Not Visited</div>
+    <div class="adv-lg-row"><div class="adv-lg-dot adv-dot-mk"  id="advCntMk">0</div>Marked for Review</div>
+    <div class="adv-lg-row"><div class="adv-lg-half" id="advCntAM">0</div>Answered &amp; Marked for Review<br><small>(will also be evaluated)</small></div>
+   </div>
+   <div class="adv-sb-inner" id="advSbInner"></div>
+   <div class="adv-profile-small">
+    <div class="adv-profile-icon-sm">
+     <svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="8" fill="#5577aa"/><ellipse cx="20" cy="34" rx="14" ry="9" fill="#5577aa"/></svg>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- Submit modal -->
+<div class="overlay" id="submitOverlay">
+ <div class="modal">
+  <h2>Submit Exam?</h2>
+  <p>Are you sure? Your answers will be downloaded as a JSON file.</p>
+  <div class="modal-btns">
+   <button class="btn-cancel"  onclick="hideSubmitModal()">Cancel</button>
+   <button class="btn-confirm" onclick="submitExam()">Submit &amp; Download</button>
+  </div>
+ </div>
+</div>
+
+<!-- ╔══════════════════════════════════╗
+     ║       ANSWER KEY PAGE           ║
+     ╚══════════════════════════════════╝ -->
+<div id="answerKeyPage">
+ <div class="ak-card">
+  <h1>🗝 Answer Key &amp; Marks Entry</h1>
+  <div class="ak-upload-row">
+   <label>Load Answers JSON :</label>
+   <input type="file" id="answersJsonInput" accept=".json">
+   <button onclick="loadAnswersJson()">Load</button>
+  </div>
+  <div id="akSections"></div>
+  <button class="ak-eval-btn" onclick="evaluateExam()">Evaluate &amp; Show Results →</button>
+ </div>
+</div>
+
+<!-- ╔══════════════════════════════════╗
+     ║         RESULT PAGE             ║
+     ╚══════════════════════════════════╝ -->
+<div id="resultPage">
+ <div class="result-card">
+  <h1>📊 Result Summary</h1>
+  <div class="result-summary">
+   <div class="r-box pos"><div class="val" id="rPos">0</div><div class="lbl">Positive Marks</div></div>
+   <div class="r-box neg"><div class="val" id="rNeg">0</div><div class="lbl">Negative Marks</div></div>
+   <div class="r-box tot"><div class="val" id="rTot">0</div><div class="lbl">Total Marks</div></div>
+  </div>
+  <div id="secResultsDiv"></div>
+  <button class="restart-btn" onclick="location.reload()">↩ Start New Exam</button>
+ </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+/* ─────────────── STATE ─────────────── */
+let questionImages   = {};
+let totalQuestions   = 0;
+let examConfig       = {};   // { examType, name, candidateName, timeMinutes, sections }
+let answers          = {};   // { n: { value, status } }  value = string|array|null
+let currentQ         = 1;
+let timerInterval    = null;
+let remainingSeconds = 0;
+let examType         = 'MAINS'; // 'MAINS' | 'ADVANCED'
+let secCount         = 0;
+
+/* ─────────────── EXAM TYPE TOGGLE ─────────────── */
+function setExamType(t){
+  examType = t;
+  document.getElementById('btnMains').className = 'exam-type-btn' + (t==='MAINS'?' active-mains':'');
+  document.getElementById('btnAdv').className   = 'exam-type-btn' + (t==='ADVANCED'?' active-adv':'');
+  document.getElementById('examName').value = t==='MAINS' ? 'JEE MAINS' : 'JEE Advanced 2026 Paper 1';
+  // rebuild section rows
+  document.getElementById('sectionsContainer').innerHTML = '';
+  secCount = 0;
+  addSection();
+}
+
+/* ─────────────── FOLDER READER ─────────────── */
+document.getElementById('folderInput').addEventListener('change', function(e){
+  questionImages = {};
+  const ps = Array.from(e.target.files).map(file => {
+    const m = file.name.match(/^[Qq](\d+)\.(png|jpe?g|gif|webp|bmp)$/i);
+    if(!m) return Promise.resolve();
+    const n = parseInt(m[1]);
+    return new Promise(res=>{ const r=new FileReader(); r.onload=ev=>{questionImages[n]=ev.target.result;res()}; r.readAsDataURL(file); });
+  });
+  Promise.all(ps).then(()=>{
+    const nums = Object.keys(questionImages).map(Number).sort((a,b)=>a-b);
+    totalQuestions = nums.length ? Math.max(...nums) : 0;
+    document.getElementById('folderInfo').textContent = nums.length
+      ? `✅ ${nums.length} image(s) — Q${nums[0]} to Q${nums[nums.length-1]}`
+      : '⚠️ No question images found. Name them Q1.png, Q2.jpg …';
+  });
+});
+
+/* ─────────────── SECTION BUILDER ─────────────── */
+function addSection(){
+  secCount++;
+  const id = secCount;
+  const d = document.createElement('div');
+  d.className='section-row'; d.id='sec-'+id;
+
+  let fieldsHtml = '';
+  if(examType === 'MAINS'){
+    fieldsHtml = `<div class="section-fields mains-fields">
+      <div><label>Section Name</label><input type="text" id="sn-${id}" value="Section ${id}"></div>
+      <div><label>Type</label>
+       <select id="st-${id}">
+        <option value="MCQ">MCQ (Single Correct)</option>
+        <option value="INT">Integer Type</option>
+       </select></div>
+      <div><label>Start Q#</label><input type="number" id="ss-${id}" value="1" min="1"></div>
+      <div><label>End Q#</label><input type="number" id="se-${id}" value="10" min="1"></div>
+    </div>`;
+  } else {
+    fieldsHtml = `<div class="section-fields adv-fields">
+      <div><label>Section Name</label><input type="text" id="sn-${id}" value="Section ${id}"></div>
+      <div><label>Type</label>
+       <select id="st-${id}">
+        <option value="SCQ">Single Correct (SCQ)</option>
+        <option value="MCQ">Multiple Correct (MCQ)</option>
+        <option value="INT">Integer / Numerical (SA)</option>
+        <option value="MAT">Matrix Match</option>
+       </select></div>
+      <div><label>Start Q#</label><input type="number" id="ss-${id}" value="1" min="1"></div>
+      <div><label>End Q#</label><input type="number" id="se-${id}" value="4" min="1"></div>
+      <div><label>+Marks</label><input type="number" id="sp-${id}" value="3" step="0.5" min="0"></div>
+      <div><label>−Marks</label><input type="number" id="sn2-${id}" value="1" step="0.5" min="0"></div>
+    </div>`;
+  }
+
+  d.innerHTML = `<button class="del-section" onclick="this.closest('.section-row').remove()">×</button>${fieldsHtml}`;
+  document.getElementById('sectionsContainer').appendChild(d);
+}
+addSection(); // default
+
+/* ─────────────── START EXAM ─────────────── */
+function startExam(){
+  const name      = document.getElementById('examName').value.trim()      || 'Exam';
+  const candidate = document.getElementById('candidateName').value.trim() || '[Your Name]';
+  const timeMin   = parseInt(document.getElementById('examTime').value)    || 180;
+
+  const sections = [];
+  document.querySelectorAll('.section-row').forEach(row=>{
+    const id = row.id.replace('sec-','');
+    const sec = {
+      name : document.getElementById('sn-'+id).value.trim(),
+      type : document.getElementById('st-'+id).value,
+      start: parseInt(document.getElementById('ss-'+id).value),
+      end  : parseInt(document.getElementById('se-'+id).value),
+      posMarks: examType==='ADVANCED' ? parseFloat(document.getElementById('sp-'+id).value)||3 : null,
+      negMarks: examType==='ADVANCED' ? parseFloat(document.getElementById('sn2-'+id).value)||1 : null,
+    };
+    sections.push(sec);
+  });
+  if(!sections.length){alert('Add at least one section.');return;}
+
+  const maxEnd = Math.max(...sections.map(s=>s.end));
+  if(totalQuestions===0) totalQuestions=maxEnd;
+
+  examConfig = {examType, name, candidateName:candidate, timeMinutes:timeMin, sections};
+  for(let i=1;i<=totalQuestions;i++) answers[i]={value:null,status:'not-visited'};
+
+  document.getElementById('setupPage').style.display='none';
+  remainingSeconds = timeMin*60;
+
+  if(examType==='MAINS'){
+    buildMainsUI();
+    document.getElementById('cbtPage').style.display='flex';
+  } else {
+    buildAdvUI();
+    document.getElementById('advPage').style.display='flex';
+  }
+  startTimer();
+  loadQuestion(1);
+}
+
+/* ─────────────── TIMER ─────────────── */
+function startTimer(){
+  const mainsEl = document.getElementById('timerDisplay');
+  const advEl   = document.getElementById('advTimer');
+  timerInterval = setInterval(()=>{
+    if(remainingSeconds<=0){clearInterval(timerInterval);submitExam();return;}
+    remainingSeconds--;
+    const h=Math.floor(remainingSeconds/3600), m=Math.floor((remainingSeconds%3600)/60), s=remainingSeconds%60;
+    const hms = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    const mm  = `${Math.floor(remainingSeconds/60)}:${pad(s)}`;
+    if(mainsEl){mainsEl.textContent=hms;mainsEl.classList.toggle('warn',remainingSeconds<300);}
+    if(advEl)  advEl.textContent=mm;
+  },1000);
+}
+const pad=n=>String(n).padStart(2,'0');
+
+/* ─────────────── MAINS UI BUILD ─────────────── */
+function buildMainsUI(){
+  document.getElementById('examLbl').textContent    = examConfig.name.toUpperCase();
+  document.getElementById('hdrName').textContent    = examConfig.candidateName;
+  document.getElementById('hdrSubject').textContent = examConfig.name;
+
+  const tabsEl=document.getElementById('sectionTabs');
+  tabsEl.innerHTML='';
+  examConfig.sections.forEach((sec,i)=>{
+    const btn=document.createElement('button');
+    btn.className='tab-btn'+(i===0?' active':'');
+    btn.textContent=sec.name;
+    btn.onclick=()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); loadQuestion(sec.start);
+    };
+    tabsEl.appendChild(btn);
+  });
+}
+
+/* ─────────────── ADVANCED UI BUILD ─────────────── */
+function buildAdvUI(){
+  document.getElementById('advHdrName').textContent  = examConfig.candidateName;
+  document.getElementById('advExamTitle').textContent= examConfig.name;
+  document.getElementById('advPaperBtn').textContent = examConfig.name.substring(0,22)+'... ℹ';
+
+  const tabsEl=document.getElementById('advSectionTabs');
+  tabsEl.innerHTML='';
+  examConfig.sections.forEach((sec,i)=>{
+    const d=document.createElement('div');
+    d.className='adv-sec-tab'+(i===0?' active':'');
+    d.id='adv-sectab-'+i;
+    d.innerHTML=`${sec.name} <span class="info-badge">ℹ</span>
+      <div class="sec-tooltip" id="stt-${i}">
+        <table>
+          <tr><td>Type</td><td>${sec.type}</td></tr>
+          <tr><td>+Marks</td><td>${sec.posMarks??'—'}</td></tr>
+          <tr><td>−Marks</td><td>${sec.negMarks??'—'}</td></tr>
+          <tr><td>Attempted</td><td id="stt-att-${i}">0</td></tr>
+          <tr><td>Marked Review</td><td id="stt-mk-${i}">0</td></tr>
+          <tr><td>Ans+Marked</td><td id="stt-am-${i}">0</td></tr>
+          <tr><td>Not Answered</td><td id="stt-na-${i}">0</td></tr>
+        </table>
+      </div>`;
+    d.onclick=(e)=>{
+      if(e.target.classList.contains('info-badge')) return;
+      document.querySelectorAll('.adv-sec-tab').forEach(b=>b.classList.remove('active'));
+      d.classList.add('active'); loadQuestion(sec.start);
+    };
+    tabsEl.appendChild(d);
+  });
+}
+
+/* ─────────────── LOAD QUESTION ─────────────── */
+function loadQuestion(n){
+  if(n<1||n>totalQuestions) return;
+  currentQ=n;
+  if(answers[n].status==='not-visited') answers[n].status='not-answered';
+
+  const sec=getSec(n);
+  const type=sec?sec.type:'SCQ';
+
+  if(examType==='MAINS'){
+    document.getElementById('qTitle').textContent=`Question ${n} :`;
+    document.getElementById('qTypeTag').textContent=`Type: ${type}`;
+    const wrap=document.getElementById('qImgWrap');
+    wrap.innerHTML=questionImages[n]?`<img src="${questionImages[n]}" alt="Q${n}">`:`<p class="q-no-img">No image for Q${n} — place <strong>Q${n}.png</strong> in folder.</p>`;
+    renderMainsOptions(n,sec);
+    renderMainsSidebar();
+    syncMainsTab(n);
+  } else {
+    // advanced type label mapping
+    const typeLabel={'SCQ':'MCQ','MCQ':'MCQ (Multiple Correct)','INT':'SA','MAT':'Matrix Match'};
+    document.getElementById('advQTypeLbl').textContent=`Question Type: ${typeLabel[type]||type}`;
+    const pm=sec?sec.posMarks:3, nm=sec?sec.negMarks:1;
+    document.getElementById('advMarksMeta').innerHTML=`Marks for correct answer: <span>${pm}</span> | Negative Marks: <span>${nm}</span>`;
+    const wrap=document.getElementById('advQImgWrap');
+    wrap.innerHTML=questionImages[n]?`<img src="${questionImages[n]}" alt="Q${n}">`:`<p class="q-no-img" style="color:#aaa;font-style:italic;padding:8px">No image for Q${n} — place <strong>Q${n}.png</strong> in folder.</p>`;
+    renderAdvOptions(n,sec);
+    renderAdvSidebar();
+    syncAdvTab(n);
+  }
+}
+
+function getSec(n){return examConfig.sections.find(s=>n>=s.start&&n<=s.end)||null;}
+
+/* ─────────────── MAINS OPTIONS ─────────────── */
+function renderMainsOptions(n,sec){
+  const area=document.getElementById('qOptionsWrap');
+  const type=sec?sec.type:'MCQ';
+  const saved=answers[n].value;
+  if(type==='MCQ'){
+    let html='<ul class="opt-list">';
+    for(let i=1;i<=4;i++){
+      const sel=saved===String(i)?' sel':'';
+      html+=`<li><div class="opt-row${sel}" id="or${i}" onclick="pickMCQ(${n},${i})">
+        <div class="opt-circle"><div class="opt-inner"></div></div>
+        <span class="opt-text">(${i})</span></div></li>`;
+    }
+    html+='</ul>';
+    area.innerHTML=html;
+  } else {
+    area.innerHTML=`<div class="int-wrap">
+      <div style="font-size:12px;font-weight:700;color:#1756b8;margin-bottom:5px;">Enter Integer Answer:</div>
+      <div class="int-display" id="iDisp">${saved!==null?saved:''}</div>
+      <div class="keypad">
+        ${[1,2,3,4,5,6,7,8,9].map(d=>`<button class="kbtn" onclick="kp('${d}')">${d}</button>`).join('')}
+        <button class="kbtn kbs" onclick="kb()">⌫</button>
+        <button class="kbtn kz"  onclick="kp('0')">0</button>
+        <button class="kbtn kclr" onclick="kc()">CLR</button>
+      </div></div>`;
+  }
+}
+function pickMCQ(n,c){
+  answers[n].value=String(c);
+  for(let i=1;i<=4;i++){const r=document.getElementById('or'+i);if(r)r.classList.toggle('sel',i===c);}
+}
+function kp(d){const e=document.getElementById('iDisp');if(!e||e.textContent.length>=9)return;e.textContent+=d;answers[currentQ].value=e.textContent;}
+function kb(){const e=document.getElementById('iDisp');if(!e)return;e.textContent=e.textContent.slice(0,-1);answers[currentQ].value=e.textContent||null;}
+function kc(){const e=document.getElementById('iDisp');if(e)e.textContent='';answers[currentQ].value=null;}
+
+/* ─────────────── ADVANCED OPTIONS ─────────────── */
+function renderAdvOptions(n,sec){
+  const area=document.getElementById('advOptionsWrap');
+  const type=sec?sec.type:'SCQ';
+  const saved=answers[n].value;
+
+  if(type==='SCQ'||type==='MAT'){
+    // single correct or matrix match — radio
+    let html='<div>';
+    for(let i=1;i<=4;i++){
+      const sel=(saved===String(i))?' sel':'';
+      html+=`<div class="adv-opt-row${sel}" id="aor${i}" onclick="advPickSingle(${n},${i})">
+        <div class="adv-opt-circle"><div class="adv-opt-inner"></div></div>
+        <span class="adv-opt-text">(${i})</span></div>`;
+    }
+    html+='</div>';
+    area.innerHTML=html;
+  } else if(type==='MCQ'){
+    // multiple correct — checkboxes
+    const selArr = Array.isArray(saved)?saved:[];
+    let html='<div>';
+    for(let i=1;i<=4;i++){
+      const sel=selArr.includes(String(i))?' sel':'';
+      html+=`<div class="adv-chk-row${sel}" id="ackr${i}" onclick="advToggleMulti(${n},${i})">
+        <div class="adv-chk-box"><div class="adv-chk-inner"></div></div>
+        <span class="adv-opt-text">(${i})</span></div>`;
+    }
+    html+='</div>';
+    area.innerHTML=html;
+  } else {
+    // integer / SA — advanced keypad matching screenshot
+    const val=saved||'';
+    area.innerHTML=`<div>
+      <input class="adv-int-display" id="advIntBox" type="text" readonly value="${val}" style="display:block;background:#fff;border:1px solid #888;padding:4px 10px;font-size:16px;font-weight:700;min-width:200px;margin-bottom:8px">
+      <div class="adv-keypad">
+        <button class="adv-kbtn" onclick="advKP('Backspace')" style="grid-column:span 3;background:#e8e8e8;font-size:12px">Backspace</button>
+        ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="adv-kbtn" onclick="advKP('${d}')">${d}</button>`).join('')}
+        <button class="adv-kbtn" onclick="advKP('0')">0</button>
+        <button class="adv-kbtn" onclick="advKP('.')">.</button>
+        <button class="adv-kbtn" onclick="advKP('-')">−</button>
+        <button class="adv-kbtn" onclick="advKP('left')" style="font-size:14px">←</button>
+        <button class="adv-kbtn" onclick="advKP('right')" style="font-size:14px">→</button>
+        <button class="adv-kbtn" style="background:none;border:none"></button>
+        <button class="adv-kbtn wide" onclick="advKClear()" style="background:#e8e8e8;font-size:12px">Clear All</button>
+      </div></div>`;
+  }
+}
+
+function advPickSingle(n,c){
+  answers[n].value=String(c);
+  for(let i=1;i<=4;i++){const r=document.getElementById('aor'+i);if(r)r.classList.toggle('sel',i===c);}
+}
+function advToggleMulti(n,c){
+  if(!Array.isArray(answers[n].value)) answers[n].value=[];
+  const arr=answers[n].value;
+  const cs=String(c);
+  const idx=arr.indexOf(cs);
+  if(idx>=0) arr.splice(idx,1); else arr.push(cs);
+  answers[n].value=arr.length?arr:null;
+  const row=document.getElementById('ackr'+c);
+  if(row) row.classList.toggle('sel', arr.includes(cs));
+}
+function advKP(k){
+  const box=document.getElementById('advIntBox');
+  if(!box)return;
+  if(k==='Backspace'){box.value=box.value.slice(0,-1);}
+  else if(k==='left'||k==='right'){}
+  else{if(box.value.length<12) box.value+=k;}
+  answers[currentQ].value=box.value||null;
+}
+function advKClear(){
+  const box=document.getElementById('advIntBox');
+  if(box)box.value='';
+  answers[currentQ].value=null;
+}
+
+/* ─────────────── MAINS SIDEBAR ─────────────── */
+function renderMainsSidebar(){
+  const inner=document.getElementById('sbInner');
+  let html=`<div class="sb-legend">
+    <div class="lg-row"><div class="lg-dot lg-nv"></div>Not Visited</div>
+    <div class="lg-row"><div class="lg-dot lg-na"></div>Not Answered</div>
+    <div class="lg-row"><div class="lg-dot lg-ans"></div>Answered</div>
+    <div class="lg-row"><div class="lg-dot lg-mk"></div>Marked Review</div>
+  </div>`;
+  examConfig.sections.forEach(sec=>{
+    html+=`<div class="sb-sec">${sec.name}</div><div class="qgrid">`;
+    for(let i=sec.start;i<=sec.end;i++){
+      const st=(answers[i]||{status:'not-visited'}).status;
+      html+=`<button class="qb ${st}${i===currentQ?' cur':''}" onclick="loadQuestion(${i})">${i}</button>`;
+    }
+    html+='</div>';
+  });
+  inner.innerHTML=html;
+}
+
+/* ─────────────── ADVANCED SIDEBAR ─────────────── */
+function renderAdvSidebar(){
+  let totAns=0,totNa=0,totNv=0,totMk=0,totAM=0;
+  for(let i=1;i<=totalQuestions;i++){
+    const st=answers[i].status;
+    if(st==='answered')         totAns++;
+    else if(st==='not-answered')totNa++;
+    else if(st==='not-visited') totNv++;
+    else if(st==='marked')      totMk++;
+    else if(st==='answered-marked')totAM++;
+  }
+  document.getElementById('advCntAns').textContent=totAns;
+  document.getElementById('advCntNa').textContent=totNa;
+  document.getElementById('advCntNv').textContent=totNv;
+  document.getElementById('advCntMk').textContent=totMk;
+  document.getElementById('advCntAM').textContent=totAM;
+
+  // update tooltip stats
+  examConfig.sections.forEach((sec,si)=>{
+    let att=0,mk=0,am=0,na=0;
+    for(let i=sec.start;i<=sec.end;i++){
+      const st=answers[i].status;
+      if(st==='answered')att++;
+      else if(st==='marked')mk++;
+      else if(st==='answered-marked'){att++;am++;}
+      else if(st==='not-answered')na++;
+    }
+    const suf=si;
+    const e=id=>document.getElementById(id);
+    if(e('stt-att-'+suf)) e('stt-att-'+suf).textContent=att;
+    if(e('stt-mk-'+suf))  e('stt-mk-'+suf).textContent=mk;
+    if(e('stt-am-'+suf))  e('stt-am-'+suf).textContent=am;
+    if(e('stt-na-'+suf))  e('stt-na-'+suf).textContent=na;
+  });
+
+  // q grid
+  const inner=document.getElementById('advSbInner');
+  let html='';
+  examConfig.sections.forEach((sec,si)=>{
+    html+=`<div class="adv-sb-sec-title">${sec.name}</div>
+     <div style="font-size:10px;color:#555;padding:2px 8px 4px;font-style:italic">Choose a Question</div>
+     <div class="adv-qgrid">`;
+    for(let i=sec.start;i<=sec.end;i++){
+      const st=(answers[i]||{status:'not-visited'}).status;
+      html+=`<button class="adv-qb ${st}${i===currentQ?' cur':''}" onclick="loadQuestion(${i})">${i}</button>`;
+    }
+    html+='</div>';
+  });
+  inner.innerHTML=html;
+}
+
+function syncMainsTab(n){
+  const sec=getSec(n);
+  document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
+    btn.classList.toggle('active',examConfig.sections[i]===sec);
+  });
+}
+function syncAdvTab(n){
+  const sec=getSec(n);
+  document.querySelectorAll('.adv-sec-tab').forEach((tab,i)=>{
+    tab.classList.toggle('active',examConfig.sections[i]===sec);
+  });
+}
+function shiftSectionLeft(){}
+function shiftSectionRight(){}
+
+/* ─────────────── ACTIONS ─────────────── */
+function hasValue(n){
+  const v=answers[n].value;
+  if(v===null||v===undefined||v==='') return false;
+  if(Array.isArray(v)) return v.length>0;
+  return true;
+}
+function saveAndNext(){
+  answers[currentQ].status=hasValue(currentQ)?'answered':'not-answered';
+  renderSidebarForMode(); goNext();
+}
+function saveAndMark(){
+  answers[currentQ].status=hasValue(currentQ)?'answered-marked':'marked';
+  renderSidebarForMode(); goNext();
+}
+function clearResponse(){
+  answers[currentQ].value=null;
+  answers[currentQ].status='not-answered';
+  const sec=getSec(currentQ);
+  if(examType==='MAINS') renderMainsOptions(currentQ,sec);
+  else renderAdvOptions(currentQ,sec);
+  renderSidebarForMode();
+}
+function markAndNext(){answers[currentQ].status='marked';renderSidebarForMode();goNext();}
+function goNext(){if(currentQ<totalQuestions)loadQuestion(currentQ+1);}
+function goBack(){if(currentQ>1)loadQuestion(currentQ-1);}
+function renderSidebarForMode(){
+  if(examType==='MAINS') renderMainsSidebar();
+  else renderAdvSidebar();
+}
+
+/* ─────────────── SUBMIT ─────────────── */
+function showSubmitModal(){document.getElementById('submitOverlay').classList.add('show');}
+function hideSubmitModal(){document.getElementById('submitOverlay').classList.remove('show');}
+
+function submitExam(){
+  clearInterval(timerInterval);
+  hideSubmitModal();
+  downloadAnswers();
+  document.getElementById('cbtPage').style.display='none';
+  document.getElementById('advPage').style.display='none';
+  buildAnswerKeyPage();
+  document.getElementById('answerKeyPage').style.display='flex';
+}
+
+function downloadAnswers(){
+  const data={exam:examConfig.name,examType,candidate:examConfig.candidateName,
+    submittedAt:new Date().toISOString(),sections:examConfig.sections,answers:{}};
+  for(let i=1;i<=totalQuestions;i++) data.answers[i]={value:answers[i].value,status:answers[i].status};
+  const a=Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),
+    download:'answers.json'});
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ─────────────── ANSWER KEY PAGE ─────────────── */
+function buildAnswerKeyPage(){
+  const con=document.getElementById('akSections');
+  con.innerHTML='';
+  examConfig.sections.forEach((sec,si)=>{
+    const d=document.createElement('div');
+    d.className='ak-section';
+    const isAdv=examType==='ADVANCED';
+    const pm=isAdv?sec.posMarks:4, nm=isAdv?sec.negMarks:1;
+    let html=`<h3>${sec.name} (${sec.type})</h3>
+      <div class="ak-marks-row">
+        <div><label>Positive Marks / Q</label><input type="number" id="pm-${si}" value="${pm}" step="0.5" min="0"></div>
+        <div><label>Negative Marks / Q</label><input type="number" id="nm-${si}" value="${nm}" step="0.5" min="0"></div>
+      </div>`;
+    for(let q=sec.start;q<=sec.end;q++){
+      const yourVal=answers[q]?.value;
+      const yourDisp=Array.isArray(yourVal)?yourVal.join(','):(yourVal??'—');
+      let inp='';
+      if(sec.type==='MCQ'){
+        // multiple correct — checkboxes
+        inp=`<div class="multi-correct-input">
+          ${[1,2,3,4].map(i=>`<label><input type="checkbox" name="ak${q}" value="${i}"> ${i}</label>`).join('')}
+        </div>`;
+      } else if(sec.type==='SCQ'||sec.type==='MAT'||sec.type==='MAINS_MCQ'){
+        inp=`<select id="ak-${q}"><option value="">—</option>${[1,2,3,4].map(i=>`<option value="${i}">${i}</option>`).join('')}</select>`;
+      } else {
+        // INT / SA
+        inp=`<input type="text" id="ak-${q}" placeholder="Correct value">`;
+      }
+      html+=`<div class="ak-q-row mcq-row">
+        <span class="qlbl">Q${q}</span>
+        <div id="ak-wrap-${q}">${inp}</div>
+        <span class="your-ans">Your ans: <b id="ya-${q}">${yourDisp}</b></span>
+      </div>`;
+    }
+    d.innerHTML=html;
+    con.appendChild(d);
+  });
+}
+
+function loadAnswersJson(){
+  const file=document.getElementById('answersJsonInput').files[0];
+  if(!file){alert('Choose a JSON file.');return;}
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      for(const [q,d] of Object.entries(data.answers||{})){
+        if(answers[q]){answers[q].value=d.value;answers[q].status=d.status;}
+        const el=document.getElementById('ya-'+q);
+        if(el){
+          const v=d.value;
+          el.textContent=Array.isArray(v)?v.join(','):(v??'—');
+        }
+      }
+      alert('Answers loaded ✅');
+    }catch{alert('Invalid JSON.');}
+  };
+  r.readAsText(file);
+}
+
+/* ─────────────── EVALUATE ─────────────── */
+function getAKValue(q,sec){
+  if(sec.type==='MCQ'){
+    // gather checked checkboxes
+    const vals=[];
+    document.querySelectorAll(`input[name="ak${q}"]:checked`).forEach(cb=>vals.push(cb.value));
+    return vals.sort();
+  } else {
+    const el=document.getElementById('ak-'+q);
+    return el?(el.value||'').trim():'';
+  }
+}
+
+/* Multiple correct marking scheme (JEE Advanced):
+   Let C = set of correct options, S = set of student options.
+   If S is empty → 0
+   If S ⊄ C (i.e. student chose a wrong option) → -1 (negMarks)
+   If S ⊆ C:
+     If S = C → full marks
+     If |C|=4, |S|=3 → +3
+     Else partial = min(|S|, |C|-|S that are correct but incomplete|) →
+     Actually JEE Advanced partial scheme:
+       |C| total correct options.
+       Student chose k options, all correct (S⊆C): marks = min(k, floor(4*k/|C|)) ... 
+     Precise rule from instructions:
+       Full (+posM)   : S = C
+       +3 : |C|=4, |S|=3, S⊆C
+       +2 : |C|≥3, |S|=2, S⊆C
+       +1 : |C|≥2, |S|=1, S⊆C
+       0  : S empty
+       -1 : otherwise (any wrong option)
+*/
+function scoreMultipleCorrect(studentArr, correctArr, posM, negM){
+  if(!studentArr||studentArr.length===0) return 0;
+  const S=studentArr.map(String).sort();
+  const C=correctArr.map(String).sort();
+  // Check if any wrong option chosen
+  const allCorrect=S.every(x=>C.includes(x));
+  if(!allCorrect) return -negM;
+  // All chosen are correct (S⊆C)
+  if(JSON.stringify(S)===JSON.stringify(C)) return posM; // full marks
+  const k=S.length;
+  if(C.length===4&&k===3) return 3;
+  if(C.length>=3&&k===2) return 2;
+  if(C.length>=2&&k===1) return 1;
+  return 1; // fallback partial
+}
+
+function evaluateExam(){
+  let totPos=0,totNeg=0;
+  const rows=[];
+  examConfig.sections.forEach((sec,si)=>{
+    const posM=parseFloat(document.getElementById('pm-'+si).value)||4;
+    const negM=parseFloat(document.getElementById('nm-'+si).value)||1;
+    let sPos=0,sNeg=0,correct=0,wrong=0,partial=0,unattempted=0;
+
+    for(let q=sec.start;q<=sec.end;q++){
+      const sa=answers[q]?.value;
+      const saArr=Array.isArray(sa)?sa.map(String).sort():(sa?[String(sa)]:[]);
+
+      if(sec.type==='MCQ'){
+        // multiple correct
+        const ca=getAKValue(q,sec); // array of correct answers
+        if(!saArr.length){unattempted++;continue;}
+        const sc=scoreMultipleCorrect(saArr,ca,posM,negM);
+        if(sc===posM){sPos+=sc;correct++;}
+        else if(sc<0){sNeg+=Math.abs(sc);wrong++;}
+        else if(sc>0){sPos+=sc;partial++;}
+        // 0 = unattempted effectively
+      } else {
+        // SCQ / MAT / INT
+        const ca=(getAKValue(q,sec)||'').trim();
+        const stuStr=(saArr[0]||'').trim();
+        if(!stuStr){unattempted++;continue;}
+        if(ca&&stuStr===ca){sPos+=posM;correct++;}
+        else if(ca){sNeg+=negM;wrong++;}
+      }
+    }
+    totPos+=sPos;totNeg+=sNeg;
+    rows.push({name:sec.name,type:sec.type,sPos,sNeg,net:sPos-sNeg,correct,wrong,partial,unattempted});
+  });
+
+  document.getElementById('answerKeyPage').style.display='none';
+  document.getElementById('rPos').textContent=totPos.toFixed(2);
+  document.getElementById('rNeg').textContent=totNeg.toFixed(2);
+  document.getElementById('rTot').textContent=(totPos-totNeg).toFixed(2);
+
+  const hasPartial=rows.some(r=>r.type==='MCQ');
+  document.getElementById('secResultsDiv').innerHTML=rows.map(s=>`
+    <div class="sec-result"><h3>${s.name} (${s.type})</h3>
+    <table>
+      <thead><tr><th>Correct</th>${s.type==='MCQ'?'<th>Partial</th>':''}
+        <th>Wrong</th><th>Unattempted</th><th>+Marks</th><th>−Marks</th><th>Net</th></tr></thead>
+      <tbody><tr>
+        <td style="color:#28a745;font-weight:700">${s.correct}</td>
+        ${s.type==='MCQ'?`<td style="color:#e67e00;font-weight:700">${s.partial}</td>`:''}
+        <td style="color:#e74c3c;font-weight:700">${s.wrong}</td>
+        <td>${s.unattempted}</td>
+        <td style="color:#28a745">+${s.sPos.toFixed(2)}</td>
+        <td style="color:#e74c3c">−${s.sNeg.toFixed(2)}</td>
+        <td style="font-weight:700;color:#1756b8">${s.net.toFixed(2)}</td>
+      </tr></tbody>
+    </table></div>`).join('');
+
+  document.getElementById('resultPage').style.display='flex';
+}
+</script>
+</body>
+</html>
